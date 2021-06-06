@@ -1,0 +1,38 @@
+#!/bin/bash
+
+read -p 'Repo Name: ' repo
+read -p 'Container Name: ' container
+read -p 'Tag: ' tag
+
+echo 'login into docker hub'
+sudo docker login
+if [ $? -ne 0 ] ; then
+        echo 'Login Failed, try again'
+fi
+
+sudo docker build -t $container .
+if [ $? -ne 0 ] ; then
+        echo 'Build failed'
+fi
+
+sudo docker run -it --rm -d -p 80:80 --name $container $container
+
+if [ $? -ne 0 ] ; then
+        echo 'docker run failed'
+fi
+
+read -p 'registr: ' reg
+sudo docker commit $container $reg/$repo:$tag
+
+if [ $? -ne 0 ] ; then
+        echo 'Docker commit failed'
+fi
+
+sudo docker push $reg/$repo:$tag
+if [ $? -ne 0 ] ; then
+        echo 'Docker push failed'
+fi
+sudo docker stop $container
+if [ $? -ne 0 ] ; then
+        echo 'Docker stop failed'
+fi
